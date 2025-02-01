@@ -1,36 +1,45 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
-import { OSM } from "ol/source";
+import { OSM, StadiaMaps } from "ol/source";
 import { useGeographic } from "ol/proj";
 
-// Styling of OpenLayers components like zoom and pan controls
 import "ol/ol.css";
+import { Layer } from "ol/layer";
 
-// By calling the "useGeographic" function in OpenLayers, we tell that we want coordinates to be in degrees
-//  instead of meters, which is the default. Without this `center: [10.6, 59.9]` brings us to "null island"
 useGeographic();
 
-// Here we create a Map object. Make sure you `import { Map } from "ol"`. Otherwise, the standard Javascript
-//  map data structure will be used
-const map = new Map({
-  // The map will be centered on a position in longitude (x-coordinate, east) and latitude (y-coordinate, north),
-  //   with a certain zoom level
-  view: new View({ center: [10.8, 59.9], zoom: 13 }),
-  // map tile images will be from the Open Street Map (OSM) tile layer
-  layers: [new TileLayer({ source: new OSM() })],
+const osmLayer = new TileLayer({ source: new OSM() });
+const stadiaLayer = new TileLayer({
+  source: new StadiaMaps({ layer: "alidade_smooth_dark" }),
 });
 
-// A functional React component
+const map = new Map({
+  view: new View({ center: [10.8, 59.9], zoom: 13 }),
+  layers: [osmLayer],
+});
+
 export function Application() {
-  // `useRef` bridges the gap between JavaScript functions that expect DOM objects and React components
   const mapRef = useRef<HTMLDivElement | null>(null);
-  // When we display the page, we want the OpenLayers map object to target the DOM object refererred to by the
-  // map React component
+
+  const [baseLayer, setBaseLayer] = useState<Layer>(osmLayer);
+  useEffect(() => map.setLayers([baseLayer]), [baseLayer]);
+
   useEffect(() => {
     map.setTarget(mapRef.current!);
   }, []);
 
-  // This is the location (in React) where we want the map to be displayed
-  return <div ref={mapRef}></div>;
+  const handleLayerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setBaseLayer(event.target.value === "osm" ? osmLayer : stadiaLayer);
+  };
+
+  return (
+    <div>
+      <select onChange={handleLayerChange}>
+        <option value="osm"> OSM</option>
+        <option value="stadia"> Stadia Maps</option>
+      </select>
+      <div ref={mapRef} style={{ width: "100%", height: "500px" }}></div>;
+    </div>
+  );
 }
