@@ -39,7 +39,7 @@ export function Application() {
         <option value="osm"> OSM</option>
         <option value="stadia"> Stadia Maps</option>
       </select>
-      <div ref={mapRef} style={{ width: "100%", height: "500px" }}></div>;
+      <div ref={mapRef}></div>;
     </div>
   );
 }
